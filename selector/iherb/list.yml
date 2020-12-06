@@ -1,0 +1,5 @@
+productLinks:
+    css: '.products a.product-link'
+    type: Attribute
+    attribute: href
+    multiple: true

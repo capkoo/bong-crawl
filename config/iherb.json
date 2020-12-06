@@ -1,0 +1,9 @@
+{
+  "searchUrl": "https://www.iherb.com/search?kw={keyword}",
+  "productListUrl": "https://www.iherb.com/search?kw={keyword}&p={pageNo}",
+  "excelColumn": [
+    "URL", "상품ID", "브랜드", "상품명", "가격", "무게",
+    "부피무게", "마켓코드(ASIN,SKU등)", "UPC코드",
+    "이미지URL(1)","이미지URL(2)","이미지URL(3)","이미지URL(4)", "이미지URL(5)",
+    "금지성분", "기본성분"]
+}

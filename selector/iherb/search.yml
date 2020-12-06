@@ -1,0 +1,5 @@
+pagePaths:
+    css: 'div.pagination a.pagination-link'
+    type: Attribute
+    attribute: data-url
+    multiple: true

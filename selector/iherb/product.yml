@@ -1,0 +1,37 @@
+productName:
+    css: 'h1#name'
+    type: Text
+brandName:
+    css: '#brand a span bdi'
+    type: Text
+price:
+    css: 'div#price'
+    type: Text
+upc:
+    css: 'span[itemprop="gtin12"]'
+    type: Text
+weight:
+    css: '.dimensions-popup-wrapper.weight .product-weight'
+    type: Text
+dimensions:
+    css: 'span#dimensions'
+    type: Text
+actualWeight:
+    css: 'span#actual-weight'
+    type: Text
+images:
+    css: '.img-slider-container div.img-wrapper div.slide a'
+    type: Attribute
+    attribute: href
+    multiple: true
+ingredients:
+    css: '.supplement-facts-container tr'
+    type: Text
+    multiple: true
+    children:
+        i:
+            css: 'td[colspan!="3"]'
+            type: Text
+
+
+

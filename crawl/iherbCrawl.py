@@ -2,11 +2,13 @@ from selectorlib import Extractor
 from urllib import parse
 from urllib.parse import urlparse, parse_qsl
 from util.excel import Excel
+from util.image_downloader import ImageDownloader
 import time
 import requests
 import json
 import os
 import datetime
+
 
 
 class IherbCrawl:
@@ -19,14 +21,17 @@ class IherbCrawl:
             "list": self.BASE_DIR + '/selector/' + self.TYPE + '/list.yml',
             "product": self.BASE_DIR + '/selector/' + self.TYPE + '/product.yml',
         };
+        self.DATA_DIR_PATH = self.BASE_DIR + '/data/'+ self.TYPE +'/' + datetime.datetime.now().strftime('%Y%m%d')
 
         self.IherbConfig = json.load(open(self.CONFIG_PATH, 'r', encoding='UTF-8'));
         self.extractorSearch = Extractor.from_yaml_file(self.SELECTOR_PATH['search'])
         self.extractorList = Extractor.from_yaml_file(self.SELECTOR_PATH['list'])
         self.extractorProduct = Extractor.from_yaml_file(self.SELECTOR_PATH['product'])
+        self.imageDownloader = ImageDownloader()
         forbiddenList = open("forbiddens.txt", 'r', encoding='UTF-8').readlines()
         forbiddenList = list(map(lambda s: s.strip(), forbiddenList))
         self.forbbiddenSet = set(forbiddenList)
+        self.delay = 1
 
 
     def requestHtml(self, url):
@@ -83,15 +88,14 @@ class IherbCrawl:
         html = self.requestHtml(productListUrl)
         res = self.extractorList.extract(html)
 
-        # print(res['productLinks'])
-
         for productLink in res['productLinks']:
             self.getProductInfo(productLink)
-            # break
+            break
 
 
     def getProductInfo(self, link):
-        time.sleep(0.5)
+        self.productNumber += 1
+        time.sleep(self.delay)
         html = self.requestHtml(link)
         res = self.extractorProduct.extract(html)
         print(res)
@@ -100,7 +104,7 @@ class IherbCrawl:
 
     def writeRow(self, link, data):
         productUrl = link
-        productId = data.get('productId', '')
+        productId = self.productNumber
         productName = data.get('productName', '')
         brandName = data.get('brandName', '')
         price = data.get('price', '')
@@ -108,12 +112,11 @@ class IherbCrawl:
         dimension = data.get('dimensions', '')
         actualWeight = data.get('actualWeight', '')
         dimWeight = data.get('dimensions', '') + "," + data.get('actualWeight', '') if type(dimension) is str and type(actualWeight) is str else ''
-        marketCode = data.get('marketCode', '')
+        marketCode = data.get('productCode', '')
         upcCode = data.get('upc', '')
         images = data.get('images', [])
         images = images if type(images) is list else []
         images.reverse()
-
         imgUrl1 = images.pop() if len(images) > 0 else ''
         imgUrl2 = images.pop() if len(images) > 0 else ''
         imgUrl3 = images.pop() if len(images) > 0 else ''
@@ -128,26 +131,42 @@ class IherbCrawl:
             if(type(ing) is str and len(ing) > 0):
                 ingredientList.append(ing)
 
-        ingredients = ','.join(ingredientList)
-        # check forbidden
-        forbiddenIngredientSet = self.forbbiddenSet & set(ingredientList)
-        forbiddenIngredients = ','.join(forbiddenIngredientSet)
+        ingredients = ', '.join(ingredientList)
+
+        forbiddenIngredientList = []
+        for ingredient in ingredientList:
+            if self.is_forbbiden(ingredient):
+                forbiddenIngredientList.append(ingredient)
+
+        forbiddenIngredients = ', '.join(forbiddenIngredientList)
 
         self.excel.appendRow(
             [productUrl, productId, brandName, productName, price, weight, dimWeight, marketCode, upcCode, imgUrl1,
              imgUrl2, imgUrl3, imgUrl4, imgUrl5, forbiddenIngredients, ingredients])
 
+        self.excel.save(self.keywordPath, self.keyword + '.xlsx')
+
+
+    def is_forbbiden(self, ingredient):
+        for forbbiedn in self.forbbiddenSet:
+            if forbbiedn.lower() in ingredient.lower():
+                return True
+
+        return False
+
 
     # product_data = []
     def exRun(self):
         with open("keyword.txt", 'r', encoding='UTF-8') as keywordList:
-            now = datetime.datetime.now().strftime('%Y%m%d')
-            excelDirPath = self.BASE_DIR + '/excel/iherb/' + now
             self.keywordList = list(map(lambda s: s.strip(), keywordList.readlines()))
             for keyword in self.keywordList:
                 print(keyword)
+                self.keyword = keyword
+                self.productNumber = 0
+                self.keywordPath = self.DATA_DIR_PATH + '/' + keyword
+                self.imagePath = self.keywordPath + '/images'
                 self.excel = Excel()
                 self.excel.setSheetName(keyword)
                 self.excel.appendRow(self.IherbConfig['excelColumn'])
                 self.getProductList(keyword)
-                self.excel.save(excelDirPath, keyword + '.xlsx')
+                self.excel.save(self.keywordPath, self.keyword + '.xlsx')

@@ -23,6 +23,7 @@ class Main:
         sys._excepthook(exctype, value, traceback)
         os.system("pause")
         # sys.exit(1)
+
 Main()
 exit()
 

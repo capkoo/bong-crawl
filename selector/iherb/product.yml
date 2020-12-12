@@ -7,6 +7,9 @@ brandName:
 price:
     css: 'div#price'
     type: Text
+productCode:
+    css: 'span[itemprop="sku"]'
+    type: Text
 upc:
     css: 'span[itemprop="gtin12"]'
     type: Text
@@ -30,7 +33,7 @@ ingredients:
     multiple: true
     children:
         i:
-            css: 'td[colspan!="3"]'
+            css: 'td'
             type: Text
 
 

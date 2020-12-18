@@ -4,8 +4,6 @@ import os
 
 class ImageDownloader:
     def download(self, imageUrl, savePath, fileName):
-        print(imageUrl)
-        print(fileName)
         try:
             response = self.request(imageUrl)
             os.makedirs(savePath, exist_ok=True)
